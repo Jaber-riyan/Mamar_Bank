@@ -16,3 +16,4 @@ psycopg2
 sqlparse
 tzdata
 virtualenv
+dj_database_url
