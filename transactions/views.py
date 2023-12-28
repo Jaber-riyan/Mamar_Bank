@@ -29,7 +29,7 @@ def send_transaction_mail(subject,amount,user,message_type,template):
         'user':user,
         'amount':amount,
     })
-    to_email = user.user.email
+    to_email = user.email
     send_email = EmailMultiAlternatives(mail_subject,'',to=[to_email])
     send_email.attach_alternative(message_body,"text/html")
     send_email.send()
