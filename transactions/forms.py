@@ -68,6 +68,7 @@ class LoanRequestForm(TransactionForm):
 
         return amount
     
+ 
     
 class TransferMoneyForm(forms.ModelForm):
     class Meta:
