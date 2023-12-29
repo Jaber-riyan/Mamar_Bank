@@ -1,3 +1,5 @@
+from django.contrib.auth.forms import AuthenticationForm
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import FormView
 from .forms import UserRegistrationForm,UserUpdateForm
@@ -6,6 +8,8 @@ from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views import View
 from django.shortcuts import redirect
+from django.contrib import messages
+
 
 class UserRegistrationView(FormView):
     template_name = 'accounts/user_registration.html'
@@ -24,11 +28,16 @@ class UserLoginView(LoginView):
     template_name = 'accounts/user_login.html'
     def get_success_url(self):
         return reverse_lazy('home')
+    
+    def form_valid(self,form):
+        messages.success(self.request,'Login Successfully. Welcome Back!')
+        return super().form_valid(form)
 
 class UserLogoutView(LogoutView):
     def get_success_url(self):
         if self.request.user.is_authenticated:
             logout(self.request)
+        messages.warning(self.request,'Logout Successfully')
         return reverse_lazy('home')
 
 
@@ -43,6 +52,7 @@ class UserBankAccountUpdateView(View):
         form = UserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
+            messages.success(request,'Successfully updated')
             return redirect('profile')  # Redirect to the user's profile page
         return render(request, self.template_name, {'form': form})
     

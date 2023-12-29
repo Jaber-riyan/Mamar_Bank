@@ -29,7 +29,7 @@ def send_transaction_mail(subject,amount,user,message_type,template):
         'user':user,
         'amount':amount,
     })
-    to_email = user.email
+    to_email = user.user.email
     send_email = EmailMultiAlternatives(mail_subject,'',to=[to_email])
     send_email.attach_alternative(message_body,"text/html")
     send_email.send()
@@ -97,15 +97,18 @@ class WithdrawMoneyView(TransactionCreateMixin):
     
     
     
-    # def dispatch(self, request, *args, **kwargs): 
-    #     account = models.UserBankAccount.objects.get(user=request.user)
-    #     is_bankrupt_account = Transaction.objects.get(account = account)
+    def dispatch(self, request, *args, **kwargs): 
+        account = models.UserBankAccount.objects.get(user=request.user)
+        # transaction = Transaction.objects.filter(account = account)
         
-    #     if is_bankrupt_account.bankrupt:
-    #         messages.error(request,'Bank is bankrupt')
-    #         return redirect('home')
+        # if transaction.exists() :
+        is_bankrupt_account = Transaction.objects.filter(bankrupt=True).exists()
         
-    #     return super().dispatch(request,*args,**kwargs)
+        if is_bankrupt_account:
+            messages.error(request,'Bank is bankrupt')
+            return redirect('home')
+        
+        return super().dispatch(request,*args,**kwargs)
 
 
     def get_initial(self):
