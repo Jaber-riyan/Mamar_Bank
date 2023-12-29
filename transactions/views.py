@@ -29,7 +29,7 @@ def send_transaction_mail(subject,amount,user,message_type,template):
         'user':user,
         'amount':amount,
     })
-    to_email = user.user.email
+    to_email = user.email
     send_email = EmailMultiAlternatives(mail_subject,'',to=[to_email])
     send_email.attach_alternative(message_body,"text/html")
     send_email.send()
@@ -106,6 +106,7 @@ class WithdrawMoneyView(TransactionCreateMixin):
         
         if is_bankrupt_account:
             messages.error(request,'Bank is bankrupt')
+            send_transaction_mail("Bankrupt Message",0,request.user,"Withdrawl",'transactions/is_bankrupt.html')
             return redirect('home')
         
         return super().dispatch(request,*args,**kwargs)

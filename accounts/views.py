@@ -29,14 +29,14 @@ class UserLoginView(LoginView):
     def get_success_url(self):
         return reverse_lazy('home')
     
+    
     def form_valid(self,form):
         messages.success(self.request,'Login Successfully. Welcome Back!')
         return super().form_valid(form)
 
 class UserLogoutView(LogoutView):
     def get_success_url(self):
-        if self.request.user.is_authenticated:
-            logout(self.request)
+        logout(self.request)
         messages.warning(self.request,'Logout Successfully')
         return reverse_lazy('home')
 
