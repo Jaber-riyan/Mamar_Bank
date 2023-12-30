@@ -2,7 +2,7 @@ from django.contrib import admin
 from .views import send_transaction_mail
 
 # from transactions.models import Transaction
-from .models import Transaction, MoneyTransfer
+from .models import Transaction
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = ['account', 'amount', 'balance_after_transaction', 'transaction_type', 'loan_approve','bankrupt']
@@ -14,5 +14,4 @@ class TransactionAdmin(admin.ModelAdmin):
         send_transaction_mail("Loan Approval Message",obj.amount,obj.account,"Loan Approve",'transactions/admin_mail.html')
         super().save_model(request, obj, form, change)
 
-admin.site.register(MoneyTransfer)
 

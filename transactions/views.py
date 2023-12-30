@@ -14,23 +14,24 @@ from accounts import models
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.http import Http404
 from transactions.forms import (
     DepositForm,
     WithdrawForm,
     LoanRequestForm,
     TransferMoneyForm
 )
-from transactions.models import Transaction,MoneyTransfer
+from transactions.models import Transaction
 
 def send_transaction_mail(subject,amount,user,message_type,template):
-    mail_subject =subject
+    mail_subject = subject
     message_body = render_to_string(template,{
         'message_type' : message_type,
         'user':user,
         'amount':amount,
     })
-    to_email = user.email
-    send_email = EmailMultiAlternatives(mail_subject,'',to=[to_email])
+    # to_email = user.email
+    send_email = EmailMultiAlternatives(mail_subject,'',to=[user.user.email])
     send_email.attach_alternative(message_body,"text/html")
     send_email.send()
 
@@ -82,7 +83,7 @@ class DepositMoneyView(TransactionCreateMixin):
 
         messages.success(
             self.request,
-            f'{"{:,.2f}".format(float(amount))}$ was deposited to your account successfully'
+            f'{"{:,.2f}".format(float(amount))}$ was deposited to your account successfully. If Your fill form with valid Email Check Your Email'
         )
         
         send_transaction_mail("Deposite Message",amount,self.request.user,'Deposite',"transactions/deposite_mail.html")
@@ -126,7 +127,7 @@ class WithdrawMoneyView(TransactionCreateMixin):
 
         messages.success(
             self.request,
-            f'Successfully withdrawn {"{:,.2f}".format(float(amount))}$ from your account'
+            f'Successfully withdrawn {"{:,.2f}".format(float(amount))}$ from your account. If Your fill form with valid Email Check Your Email'
         )
         
         send_transaction_mail("Withdrawl Message",amount,self.request.user,"Withdrawl",'transactions/deposite_mail.html')
@@ -154,7 +155,7 @@ class LoanRequestView(TransactionCreateMixin):
         else:
             messages.success(
                 self.request,
-                f'Loan request for {"{:,.2f}".format(float(amount))}$ submitted successfully'
+                f'Loan request for {"{:,.2f}".format(float(amount))}$ submitted successfully. If Your fill form with valid Email Check Your Email'
             )
             
         send_transaction_mail("Loan Request Message",amount,self.request.user,"Loan Request",'transactions/loan_request_mail.html')
@@ -234,36 +235,94 @@ class LoanListView(LoginRequiredMixin,ListView):
         return queryset
     
     
-class MoneyTransfer(LoginRequiredMixin,CreateView):
+# class MoneyTransfer(LoginRequiredMixin,):
+#     template_name = 'transactions/money_transfer.html'
+#     form_class = TransferMoneyForm
+#     success_url = reverse_lazy('home')
+    
+    
+    
+#     def form_valid(self,form):
+#         account_no = form.cleaned_data.get('account_no')
+#         amount = form.cleaned_data.get('amount')
+#         print(account_no)
+#         print(amount)
+        
+#         sender_account = models.UserBankAccount.objects.get(user=self.request.user)
+#         receiver_acccount = None
+        
+#         try:
+#             receiver_acccount = models.UserBankAccount.objects.get(id=account_no)
+        
+#         except models.UserBankAccount.DoesNotExist:
+#             # raise Http404(f"Account with ID {account_no} does not exist.")
+#             messages.error(self.request, 'Receiver Account not found')
+#             return super().form_invalid(form)
+            
+        
+#         if amount > sender_account.balance:
+#             messages.error(self.request,'Amount is more than Your Account Balance')
+        
+#         else:
+#             sender_account.balance -= amount
+#             receiver_acccount.balance += amount
+#             messages.success(self.request,f'${amount} Transfer Successfully')
+#             sender_account.save()
+#             receiver_acccount.save()
+        
+
+#         return super().form_valid(form)
+
+
+
+
+from django.shortcuts import get_object_or_404
+from django.views.generic.edit import FormView
+
+class MoneyTransferView(LoginRequiredMixin, FormView):
     template_name = 'transactions/money_transfer.html'
     form_class = TransferMoneyForm
     success_url = reverse_lazy('home')
-    model = MoneyTransfer
-    
-    
-    
-    def form_valid(self,form):
+
+    def form_valid(self, form):
         account_no = form.cleaned_data.get('account_no')
         amount = form.cleaned_data.get('amount')
-        
-        sender_account = models.UserBankAccount.objects.get(user=self.request.user)
-        receiver_acccount = models.UserBankAccount.objects.get(id=account_no)
-        
-        if amount > sender_account.balance:
-            messages.error(self.request,'Amount is more than Your Account Balance')
-        
-        elif receiver_acccount:
-            sender_account.balance -= amount
-            receiver_acccount.balance += amount
-            messages.success(self.request,f'Balance {amount} Transfer Successfully')
-            sender_account.save()
-            receiver_acccount.save()
+        print(account_no)
+        print(amount)
         
 
-        else:
-            messages.error(self.request,'Receiver Account Transfer Failed')
+        # sender_account = get_object_or_404(models.UserBankAccount, user = self.request.user)
+        sender_account = models.UserBankAccount.objects.get(user=self.request.user)
+        receiver_account = models.UserBankAccount.objects.get(id=account_no)
+
+        # try:
+        #     # receiver_account = get_object_or_404(models.UserBankAccount, id = account_no )
+        #     receiver_account = models.UserBankAccount.objects.get(id=account_no)
+            
+        # except models.UserBankAccount.DoesNotExist:
+        #     messages.error(self.request, 'Receiver Account not found')
+        #     return super().form_invalid(form)
         
+        # print(sender_account.email)
+        # print(receiver_account.user.email)
+
+        if amount > sender_account.balance:
+            messages.error(self.request, 'Amount is more than Your Account Balance')
+            return super().form_valid(form)
+        
+        if receiver_account.DoesNotExist:
+            messages.error(self.request,'Receiver Account not found')  
+            return super().form_valid(form)  
+        
+        else:
+            sender_account.balance -= amount
+            receiver_account.balance += amount
+            messages.success(self.request, f'${amount} Transfer Successfully')
+            sender_account.save()
+            receiver_account.save()
+
         return super().form_valid(form)
+
         
         
     

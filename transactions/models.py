@@ -17,10 +17,3 @@ class Transaction(models.Model):
         ordering = ['timestamp'] 
         
         
-class MoneyTransfer(models.Model):
-    user = models.ForeignKey(UserBankAccount,on_delete = models.CASCADE,null=True,blank=True)
-    account_no = models.IntegerField()
-    amount = models.IntegerField()
-    
-    # def __str__(self):
-    #     return str(self.user.account_no)

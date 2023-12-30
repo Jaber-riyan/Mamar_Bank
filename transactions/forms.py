@@ -1,5 +1,5 @@
 from django import forms
-from .models import Transaction,MoneyTransfer
+from .models import Transaction
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
@@ -70,7 +70,9 @@ class LoanRequestForm(TransactionForm):
     
  
     
-class TransferMoneyForm(forms.ModelForm):
-    class Meta:
-        model = MoneyTransfer
-        fields = ['account_no','amount',]
+class TransferMoneyForm(forms.Form):
+    account_no = forms.IntegerField(label='Account No')
+    amount = forms.IntegerField(label='Amount')
+    
+        
+        

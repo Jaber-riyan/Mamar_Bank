@@ -36,7 +36,6 @@ class UserLoginView(LoginView):
 
 class UserLogoutView(LogoutView):
     def get_success_url(self):
-        logout(self.request)
         messages.warning(self.request,'Logout Successfully')
         return reverse_lazy('home')
 
